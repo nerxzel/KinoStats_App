@@ -38,7 +38,7 @@ class LoginScreenViewModel @Inject constructor(
         val isPassBlank = currentState.pass.isBlank()
 
         if (usernameErrorResult != null || isPassBlank) {
-            _state.update { it.copy(errorMsg = "Invalid email or password") }
+            _state.update { it.copy(errorMsg = "Invalid user name or password") }
             return
         }
 
@@ -46,18 +46,18 @@ class LoginScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, errorMsg = null) }
 
-            val isSuccess = authRepository.login(
+            val errorMessage = authRepository.login(
                 username = currentState.username,
                 pass = currentState.pass
             )
 
-            if (isSuccess) {
+            if (errorMessage == null) {
                 _state.update { it.copy(isSubmitting = false, success = true) }
             } else {
                 _state.update {
                     it.copy(
                         isSubmitting = false,
-                        errorMsg = "Invalid User name or Password"
+                        errorMsg = errorMessage
                     )
                 }
             }

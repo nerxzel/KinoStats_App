@@ -12,11 +12,13 @@ import com.mooncowpines.kinostats.data.remote.dto.UserDetailsUpdateDTO
 import com.mooncowpines.kinostats.data.remote.dto.UserPasswordUpdateDTO
 import com.mooncowpines.kinostats.domain.repository.AuthRepository
 import com.mooncowpines.kinostats.domain.repository.AuthState
+import com.mooncowpines.kinostats.utils.getErrorMessage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import retrofit2.HttpException
 import okhttp3.Credentials
+import java.io.IOException
 import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
@@ -32,8 +34,8 @@ class AuthRepositoryImpl @Inject constructor(
 
     private var currentUser: User? = null
 
-    override suspend fun login(username: String, pass: String): Boolean {
-        return try {
+    override suspend fun login(username: String, pass: String): String? {
+        try {
             val authHeader = Credentials.basic(username, pass)
             val response = api.login(authHeader)
 
@@ -50,13 +52,17 @@ class AuthRepositoryImpl @Inject constructor(
                     sessionManager.saveAuthToken(authHeader)
                     _authState.value = AuthState.LOGGED_IN
 
-                    return true
+                    return null
                 }
+                return "Empty response from server"
+            } else {
+                return response.getErrorMessage()
             }
-            return false
+        } catch (e: IOException) {
+            return "Network error. Check your connection."
         } catch (e: Exception) {
             Log.e("AuthRepository", "Something went wrong trying to log in", e)
-            false
+            return "An unexpected error occurred"
         }
     }
 
@@ -70,8 +76,8 @@ class AuthRepositoryImpl @Inject constructor(
         return currentUser
     }
 
-    override suspend fun register(userName: String, email: String, pass: String): Boolean {
-        return try {
+    override suspend fun register(userName: String, email: String, pass: String): String? {
+        try {
             val newUserDTO = UserDTO(
                 userName = userName,
                 email = email,
@@ -82,14 +88,15 @@ class AuthRepositoryImpl @Inject constructor(
 
             if (response.isSuccessful) {
                 Log.d("REGISTER", "User $userName registered with email $email")
-                login(userName, pass)
+                return login(userName, pass)
             } else {
-                Log.e("REGISTER", "Server error: ${response.errorBody()?.string()}")
-                false
+                return response.getErrorMessage()
             }
+        } catch (e: IOException) {
+            return "Network error. Check your connection."
         } catch (e: Exception) {
             Log.e("REGISTER", "Network Error", e)
-            false
+            return "An unexpected error occurred"
         }
     }
 
@@ -98,29 +105,20 @@ class AuthRepositoryImpl @Inject constructor(
         userName: String,
         currentPassword: String,
         newPassword: String?
-    ): Boolean {
-        val userToUpdate = currentUser ?: return false
-        val userId = userToUpdate.id ?: return false
+    ): String? {
+        val userToUpdate = currentUser ?: return "User not found"
+        val userId = userToUpdate.id ?: return "User ID missing"
 
         return try {
-            val isSuccess = if (newPassword == null) {
-                val dto = UserDetailsUpdateDTO(
-                    email = email,
-                    username = userName,
-                    pass = currentPassword
-                )
-                val response = api.updateUserDetails(userId, dto)
-                response.isSuccessful
+            val response = if (newPassword == null) {
+                val dto = UserDetailsUpdateDTO(email = email, username = userName, pass = currentPassword)
+                api.updateUserDetails(userId, dto)
             } else {
-                val dto = UserPasswordUpdateDTO(
-                    newPassword = newPassword,
-                    oldPassword = currentPassword
-                )
-                val response = api.updateUserPassword(userId, dto)
-                response.isSuccessful
+                val dto = UserPasswordUpdateDTO(newPassword = newPassword, oldPassword = currentPassword)
+                api.updateUserPassword(userId, dto)
             }
 
-            if (isSuccess) {
+            if (response.isSuccessful) {
                 val passToSave = newPassword ?: currentPassword
                 val newAuthHeader = Credentials.basic(userName, passToSave)
                 sessionManager.saveAuthToken(newAuthHeader)
@@ -130,14 +128,15 @@ class AuthRepositoryImpl @Inject constructor(
                     email = email,
                     pass = passToSave
                 )
-                true
+                null
             } else {
-                Log.e("UPDATE", "Server rejected the update")
-                false
+                response.getErrorMessage()
             }
+        } catch (e: IOException) {
+            "Network error. Check your connection."
         } catch (e: Exception) {
             Log.e("UPDATE", "Error updating account: ", e)
-            false
+            "An unexpected error occurred"
         }
     }
 
@@ -157,27 +156,27 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun sendRecoveryEmail(email: String): Boolean {
-        return try {
+    override suspend fun sendRecoveryEmail(email: String): String? {
+        try {
             val request = ForgotPasswordDTO(email = email)
-
             val response = api.requestPasswordReset(request)
 
             if (response.isSuccessful) {
-                Log.d("AuthRepository", "Correo de recuperación enviado con éxito")
-                true
+                Log.d("AuthRepository", "Recovery email sent successfully")
+                return null
             } else {
-                Log.e("AuthRepository", "Error del servidor: ${response.code()}")
-                false
+                return response.getErrorMessage()
             }
+        } catch (e: IOException) {
+            return "Network error. Check your connection."
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error de red al enviar correo", e)
-            false
+            Log.e("AuthRepository", "Network error sending email", e)
+            return "An unexpected error occurred"
         }
     }
 
-    override suspend fun resetPassword(email: String, code: String, newPass: String): Boolean {
-        return try {
+    override suspend fun resetPassword(email: String, code: String, newPass: String): String? {
+         try {
             val request = ResetPasswordDTO(
                 email = email,
                 code = code,
@@ -186,17 +185,18 @@ class AuthRepositoryImpl @Inject constructor(
 
             val response = api.resetPassword(request)
 
-            if (response.isSuccessful) {
-                Log.d("AuthRepository", "Contraseña reseteada con éxito")
-                true
-            } else {
-                Log.e("AuthRepository", "Error al resetear: Código inválido o expirado")
-                false
-            }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Error de red al resetear contraseña", e)
-            false
-        }
+             if (response.isSuccessful) {
+                 Log.d("AuthRepository", "Password reset successfully")
+                 return null
+             } else {
+                 return response.getErrorMessage()
+             }
+         } catch (e: IOException) {
+             return "Network error. Check your connection."
+         } catch (e: Exception) {
+             Log.e("AuthRepository", "Network error resetting password", e)
+             return "An unexpected error occurred"
+         }
     }
 
 }

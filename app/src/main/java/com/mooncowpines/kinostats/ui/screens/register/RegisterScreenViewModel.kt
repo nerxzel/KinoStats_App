@@ -61,16 +61,19 @@ class RegisterScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, errorMsg = null, emailError = null, userNameError = null) }
 
-            val isSuccess = authRepository.register(
+            val errorMessage = authRepository.register(
                 userName = currentState.userName,
                 email = currentState.email,
                 pass = currentState.pass
             )
 
-            if (isSuccess) {
+            if (errorMessage == null) {
                 _state.update { it.copy(isSubmitting = false, success = true) }
             } else {
-                _state.update { it.copy(isSubmitting = false, errorMsg = "Email is already registered") }
+                _state.update {
+                    it.copy(
+                        isSubmitting = false,
+                        errorMsg = errorMessage) }
             }
         }
     }

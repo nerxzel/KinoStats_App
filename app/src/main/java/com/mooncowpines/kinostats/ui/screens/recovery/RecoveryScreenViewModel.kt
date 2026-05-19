@@ -48,12 +48,16 @@ class RecoveryScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, errorMsg = null) }
 
-            val isSuccess = authRepository.sendRecoveryEmail(currentState.email)
-
-            if (isSuccess) {
+            val errorMessage = authRepository.sendRecoveryEmail(currentState.email)
+            if (errorMessage == null) {
                 _state.update { it.copy(isSubmitting = false, success = true) }
             } else {
-                _state.update { it.copy(isSubmitting = false, errorMsg = "This email doesn't have an account associated") }
+                _state.update {
+                    it.copy(
+                        isSubmitting = false,
+                        errorMsg = errorMessage
+                    )
+                }
             }
         }
     }

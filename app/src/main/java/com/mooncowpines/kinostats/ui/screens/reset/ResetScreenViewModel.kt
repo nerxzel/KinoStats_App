@@ -23,7 +23,7 @@ class ResetScreenViewModel @Inject constructor(
     private val _state = MutableStateFlow(ResetScreenState())
     val state: StateFlow<ResetScreenState> = _state.asStateFlow()
 
-    private val userEmail: String = checkNotNull(savedStateHandle["email"]) ?: "CORREO_NO_ENCONTRADO"
+    private val userEmail: String = checkNotNull(savedStateHandle["email"]) ?: "EMAIL_NOT_FOUND"
 
     //Functions to track text field value
     fun onCodeChange(newCode: String) {
@@ -64,20 +64,23 @@ class ResetScreenViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true, errorMsg = null) }
 
-            val isSuccess = authRepository.resetPassword(
+            val errorMessage = authRepository.resetPassword(
                 email = userEmail,
                 code = currentState.code,
                 newPass = currentState.pass
             )
 
-            if (isSuccess) {
+            if (errorMessage == null) {
                 _state.update { it.copy(isSubmitting = false, success = true) }
             } else {
-            _state.update {
-                it.copy(isSubmitting = false, errorMsg = "Invalid or expired code")
-            }
+                _state.update {
+                    it.copy(
+                        isSubmitting = false,
+                        errorMsg = errorMessage
+                    )
+                }
         }
-        }
+    }
     }
 }
 

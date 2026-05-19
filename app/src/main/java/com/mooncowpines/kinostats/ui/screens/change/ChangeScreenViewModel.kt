@@ -76,15 +76,18 @@ class ChangeScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmittingProfile = true, errorMsg = null) }
-            val isSuccess = authRepository.updateUser(
+            val errorMessage = authRepository.updateUser(
                 userName = currentState.userName,
                 email = currentState.email,
                 currentPassword = currentState.passForProfile,
                 newPassword = null
             )
 
-            if (isSuccess) _state.update { it.copy(isSubmittingProfile = false, profileSuccess = true) }
-            else _state.update { it.copy(isSubmittingProfile = false, errorMsg = "Could not update profile") }
+            if (errorMessage == null) {
+                _state.update { it.copy(isSubmittingProfile = false, profileSuccess = true) }
+            } else {
+             _state.update { it.copy(isSubmittingProfile = false, errorMsg = errorMessage) }
+            }
         }
     }
 
@@ -104,15 +107,18 @@ class ChangeScreenViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmittingPassword = true, errorMsg = null) }
-            val isSuccess = authRepository.updateUser(
+            val errorMessage = authRepository.updateUser(
                 userName = currentState.userName,
                 email = currentState.email,
                 currentPassword = currentState.passForPassword,
                 newPassword = currentState.newPass
             )
 
-            if (isSuccess) _state.update { it.copy(isSubmittingPassword = false, passwordSuccess = true) }
-            else _state.update { it.copy(isSubmittingPassword = false, errorMsg = "Could not update password") }
+            if (errorMessage == null) {
+                _state.update { it.copy(isSubmittingPassword = false, passwordSuccess = true) }
+            } else {
+                _state.update { it.copy(isSubmittingPassword = false, errorMsg = "Could not update password") }
+            }
         }
     }
 

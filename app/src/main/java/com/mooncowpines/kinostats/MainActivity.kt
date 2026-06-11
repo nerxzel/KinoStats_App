@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
                                 restoreState = true
                             } })
                     } }
-                    ){ innerPadding ->
+                ){ innerPadding ->
                     NavGraph(
                         modifier = Modifier.padding(innerPadding),
                         navController = navController,
@@ -73,4 +73,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-

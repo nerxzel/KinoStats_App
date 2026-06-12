@@ -50,7 +50,7 @@ fun KinoLastSeenCard(
                 model = movieCard.posterUrl,
                 contentDescription = movieCard.title,
                 modifier = Modifier
-                    .fillMaxWidth(0.30f)
+                    .fillMaxWidth(0.26f)
                     .aspectRatio(2f / 3f)
                     .clip(RoundedCornerShape(4.dp))
                     .padding(KinoSpacing.mediumSmall),

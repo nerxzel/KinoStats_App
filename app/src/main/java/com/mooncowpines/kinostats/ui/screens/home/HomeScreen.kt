@@ -210,7 +210,8 @@ fun WatchlistSection(
                     items(movieCards) { movieCard ->
                         KinoPosterCard(
                             movieCard = movieCard,
-                            onClick = { id -> onMovieClick(id) }
+                            onClick = { id -> onMovieClick(id) },
+                            Modifier.width(110.dp).aspectRatio(2f/3f)
                         )
                     }
                     item {
@@ -324,7 +325,8 @@ fun JustWatchedSection(
                     items(movieCards) { movieCards ->
                         KinoPosterCard(
                             movieCard = movieCards,
-                            onClick = { id -> onMovieClick(id) }
+                            onClick = { id -> onMovieClick(id) },
+                            Modifier.width(110.dp).aspectRatio(2f/3f)
                         )
                     }
 

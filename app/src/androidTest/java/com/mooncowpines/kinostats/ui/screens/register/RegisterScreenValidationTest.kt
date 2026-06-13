@@ -20,12 +20,12 @@ class RegisterScreenValidationTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    val fakeRepo = FakeAuthRepositoryImpl()
-    val testViewModel = RegisterScreenViewModel(fakeRepo)
 
     @Test
     fun registerWithInvalidData_showsValidationErrors_andBlocksNavigation() {
         var hasNavigatedToHome = false
+        val fakeRepo = FakeAuthRepositoryImpl()
+        val testViewModel = RegisterScreenViewModel(fakeRepo)
 
         composeTestRule.setContent {
             RegisterScreen(
@@ -52,6 +52,9 @@ class RegisterScreenValidationTest {
 
     @Test
     fun passwordField_togglesMasking_whenTrailingIconIsClicked() {
+
+        val fakeRepo = FakeAuthRepositoryImpl()
+        val testViewModel = RegisterScreenViewModel(fakeRepo)
 
         composeTestRule.setContent {
             RegisterScreen(

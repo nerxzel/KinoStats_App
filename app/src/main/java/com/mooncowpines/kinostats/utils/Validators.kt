@@ -1,6 +1,9 @@
 package com.mooncowpines.kinostats.utils
 
-import android.util.Patterns
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.time.LocalDate
 import kotlin.text.isLetterOrDigit
 import android.content.Context
@@ -57,11 +60,19 @@ fun getWatchDateError(watchDate: LocalDate?): String? {
 }
 
 fun isPassValid(pass: String): Boolean {
-    return pass.length >= 7 && pass.any {it.isDigit()} && pass.any { !it.isLetterOrDigit() }
+    return pass.length >= 7 &&
+            pass.any {it.isDigit()} &&
+            pass.any {!it.isLetterOrDigit()} &&
+            pass.any { it.isLetter()}
 }
 
 fun isPassMatch(pass: String, passCheck: String): Boolean {
     return pass == passCheck && passCheck.isNotBlank()
+}
+
+fun isRatingValid(rating: Float): Boolean {
+    if (rating < 0.5f || rating > 5.0f) return false
+    return rating.rem(0.5f) == 0f
 }
 
 fun getCurrentPassError(currentPass: String) :String? {
@@ -78,6 +89,23 @@ fun parseSafely(dateString: String?): LocalDate? {
     } catch (e: Exception) {
         null
     }
+}
+
+fun formatTimestampToDateString(timestamp: Long, locale: Locale = Locale.getDefault()): String {
+    val localDate = Instant.ofEpochMilli(timestamp).atZone(ZoneId.of("UTC")).toLocalDate()
+    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
+    return localDate.format(dateFormatter)
+}
+
+fun formatLocalDateToString(date: java.time.LocalDate, locale: java.util.Locale = java.util.Locale.getDefault()): String {
+    val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
+    return date.format(dateFormatter)
+}
+
+fun formatTotalMinutes(totalMinutes: Int): String {
+    val hours = totalMinutes / 60
+    val minutes = totalMinutes % 60
+    return "${hours}h ${minutes}m"
 }
 
 fun shareWrappedSlide(context: Context, bitmap: Bitmap) {

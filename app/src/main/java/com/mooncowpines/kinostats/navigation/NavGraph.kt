@@ -128,8 +128,8 @@ fun NavGraph(
                onMovieClick =  { movieId ->
                     navController.navigate(Route.MovieDetail.createRoute(movieId))
                 },
-                onNavigateToWrapped = { year, month ->
-                    navController.navigate(Route.Wrapped.createRoute(year, month))
+                onNavigateToWrapped = { year ->
+                    navController.navigate(Route.Wrapped.createRoute(year))
                 }
             )
         }
@@ -202,10 +202,6 @@ fun NavGraph(
             route = Route.Wrapped.path,
             arguments = listOf(
                 navArgument("year") { type = NavType.IntType },
-                navArgument("month") {
-                    type = NavType.IntType
-                    defaultValue = -1
-                }
             )
         ) {
             WrappedScreen(

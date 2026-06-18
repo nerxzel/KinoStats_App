@@ -24,7 +24,7 @@ class MovieDetailTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun movieDetailScreen_fabAddLog_navigatesToCreateNewLog() {
+    fun cp_19_movieDetailScreen_fabAddLog_navigatesToCreateNewLog() {
         val testMovie = Movie(
             id = 99L,
             title = "Inception",
@@ -65,7 +65,7 @@ class MovieDetailTest {
         composeTestRule.onNodeWithContentDescription("Add Review", useUnmergedTree = true).performClick()
         composeTestRule.onNodeWithText("Add Log").performClick()
 
-        assertEquals("No se navegó a la pantalla de registro con el ID correcto", 99L, navigatedMovieId)
+        assertEquals("The system navigated to the right screen", 99L, navigatedMovieId)
 
     }
 }

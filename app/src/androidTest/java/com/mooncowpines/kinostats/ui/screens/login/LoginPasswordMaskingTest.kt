@@ -23,7 +23,7 @@ class LoginPasswordMaskingTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun loginScreen_passwordField_masksInput_andTogglesVisibility() {
+    fun cp_09_masksInput_andTogglesVisibility() {
         composeTestRule.setContent {
             var fakeState by remember { mutableStateOf(LoginScreenState()) }
 

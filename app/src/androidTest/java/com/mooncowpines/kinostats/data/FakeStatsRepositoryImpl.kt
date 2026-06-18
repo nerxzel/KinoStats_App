@@ -20,4 +20,8 @@ class FakeStatsRepository : StatsRepository {
 
         return mockUserStats
     }
+
+    override suspend fun getWrappedStats(userId: Long?, year: Int?): UserStats? {
+        return null
+    }
 }

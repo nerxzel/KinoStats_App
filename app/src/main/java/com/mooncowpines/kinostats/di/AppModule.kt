@@ -1,5 +1,9 @@
 package com.mooncowpines.kinostats.di
 
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import com.mooncowpines.kinostats.data.local.SessionManager
 import com.mooncowpines.kinostats.data.remote.AuthApi
 import com.mooncowpines.kinostats.data.remote.HomeApi
@@ -22,16 +26,65 @@ import com.mooncowpines.kinostats.domain.repository.StatsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.io.File
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Provides
+    @Singleton
+    fun provideEncryptedSharedPreferences(@ApplicationContext context: Context): SharedPreferences {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+
+        val prefName = "kinostats_prefs"
+
+        return try {
+            EncryptedSharedPreferences.create(
+                context,
+                prefName,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        } catch (e: Exception) {
+
+            context.getSharedPreferences(prefName, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply()
+
+            val dir = File(context.applicationInfo.dataDir, "shared_prefs")
+            val prefFile = File(dir, "$prefName.xml")
+            if (prefFile.exists()) {
+                prefFile.delete()
+            }
+
+            EncryptedSharedPreferences.create(
+                context,
+                prefName,
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+        }
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideSessionManager(prefs: SharedPreferences): SessionManager {
+        return SessionManager(prefs)
+    }
 
     @Provides
     @Singleton

@@ -3,12 +3,21 @@ package com.mooncowpines.kinostats.utils
 import android.util.Patterns
 import java.time.LocalDate
 import kotlin.text.isLetterOrDigit
+import android.content.Context
+import android.content.Intent
+import android.graphics.Bitmap
+import androidx.core.content.FileProvider
+import java.io.File
+import java.io.FileOutputStream
 
 fun getEmailError(email: String): String? {
     if (email.isBlank()) {
         return "Email cannot be empty"
     }
-    if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+
+    val emailRegex = """^[A-Za-z0-9+_.-]+@([A-Za-z0-9-]+\.)+[A-Za-z]{2,}$""".toRegex()
+
+    if (!emailRegex.matches(email)) {
         return "Invalid email format"
     }
     return null
@@ -30,13 +39,6 @@ fun getUserNameError(userName: String): String? {
         return "This user name is reserved"
     }
         return null
-}
-
-fun getRatingError(rating: Float): String?{
-    if (rating == 0f) {
-        return "The log rating cannot be 0"
-    }
-    return null
 }
 
 fun getCodeError(code: String) : String? {
@@ -66,7 +68,37 @@ fun getCurrentPassError(currentPass: String) :String? {
     if (currentPass.isBlank()) {
         return "This field cannot be empty"
     }
-
     return null
 }
 
+fun parseSafely(dateString: String?): LocalDate? {
+    if (dateString.isNullOrBlank()) return null
+    return try {
+        LocalDate.parse(dateString)
+    } catch (e: Exception) {
+        null
+    }
+}
+
+fun shareWrappedSlide(context: Context, bitmap: Bitmap) {
+    try {
+        val cachePath = File(context.cacheDir, "images")
+        cachePath.mkdirs()
+
+        val file = File(cachePath, "kino_wrapped.png")
+        val stream = FileOutputStream(file)
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.close()
+
+        val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "image/png"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        context.startActivity(Intent.createChooser(intent, "Share to Instagram!"))
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}

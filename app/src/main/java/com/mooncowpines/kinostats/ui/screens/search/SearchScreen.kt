@@ -150,7 +150,7 @@ fun SearchContent(
                             KinoPosterCard(
                                 movieCard = movie,
                                 onClick = { onMovieClick(movie.id) },
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.width(110.dp).aspectRatio(2f/3f)
                             )
                         }
                     }

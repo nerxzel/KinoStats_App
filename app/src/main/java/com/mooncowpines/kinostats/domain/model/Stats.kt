@@ -9,7 +9,9 @@ data class UserStats(
     val topActors: List<StatItem<String, Int>>,
     val topDirectors: List<StatItem<String, Int>>,
     val ratings: List<StatItem<Float, Int>>,
-    val decades: List<StatItem<Int, Int>>
+    val decades: List<StatItem<Int, Int>>,
+    val firstMovie: MovieCard? = null,
+    val lastMovie: MovieCard? = null
 )
 
 data class StatItem<T, V>(

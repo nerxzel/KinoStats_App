@@ -24,8 +24,6 @@ class WrappedViewModel @Inject constructor(
     val state: StateFlow<WrappedScreenState> = _state.asStateFlow()
 
     val targetYear: Int = checkNotNull(savedStateHandle["year"])
-    private val rawMonth: Int = savedStateHandle.get<Int>("month") ?: -1
-    val targetMonth: Int? = if (rawMonth != -1) rawMonth else null
 
     init {
         loadWrappedData()
@@ -41,10 +39,9 @@ class WrappedViewModel @Inject constructor(
                 return@launch
             }
 
-            val fetchedStats = statsRepository.getUserStats(
+            val fetchedStats = statsRepository.getWrappedStats(
                 userId = user.id,
                 year = targetYear,
-                month = targetMonth
             )
 
             if (fetchedStats != null) {

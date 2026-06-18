@@ -16,8 +16,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -41,7 +39,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
-import java.time.Month
 import java.time.format.TextStyle
 import java.util.Locale
 import com.mooncowpines.kinostats.domain.model.UserStats
@@ -52,6 +49,7 @@ import com.mooncowpines.kinostats.ui.theme.KinoYellowVerticalGradient
 import com.mooncowpines.kinostats.ui.components.KinoBentoBox
 import com.mooncowpines.kinostats.ui.components.KinoBentoList
 import com.mooncowpines.kinostats.ui.components.KinoBentoPoster
+import com.mooncowpines.kinostats.utils.formatTotalMinutes
 import com.mooncowpines.kinostats.utils.shareWrappedSlide
 import kotlinx.coroutines.launch
 
@@ -73,15 +71,7 @@ fun WrappedScreen(
         }
     } else {
         state.stats?.let { stats ->
-            val periodText = if (viewModel.targetMonth != null) {
-                val monthName = Month.of(viewModel.targetMonth)
-                    .getDisplayName(TextStyle.FULL, Locale.ENGLISH)
-                    .replaceFirstChar { it.uppercase() }
-
-                "$monthName ${viewModel.targetYear}"
-            } else {
-                "${viewModel.targetYear}"
-            }
+            val periodText = "${viewModel.targetYear}"
 
             WrappedContent(
                 stats = stats,
@@ -223,9 +213,7 @@ fun WelcomeSlide(totalMovies: Int, period: String) {
         targetValue = totalMovies
     }
 
-    val isYear = !period.contains("Month", ignoreCase = true)
-
-    val funFact = if (isYear && totalMovies > 0) {
+    val funFact = if (totalMovies > 0) {
         val moviesPerMonth = totalMovies / 12
         if (moviesPerMonth > 0) "That's about $moviesPerMonth movies every month!"
         else "Quality over quantity!"
@@ -290,9 +278,6 @@ fun TimeSlide(totalMinutes: Int) {
         currentTotalMinutes = totalMinutes
     }
 
-    val displayHours = animatedTotal / 60
-    val displayMinutes = animatedTotal % 60
-
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(32.dp)
@@ -302,7 +287,7 @@ fun TimeSlide(totalMinutes: Int) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
-            text = "${displayHours}h ${displayMinutes}m",
+            text = formatTotalMinutes(animatedTotal),
             color = KinoYellow,
             fontSize = 65.sp,
             fontWeight = FontWeight.Black,
@@ -401,8 +386,15 @@ fun EndSlide(stats: UserStats, period: String) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                KinoBentoBox(modifier = Modifier.weight(1f), title = "MOVIES", value = "${stats.totalMovies}")
-                KinoBentoBox(modifier = Modifier.weight(1f), title = "HOURS", value = "${stats.totalHours}h")
+                KinoBentoBox(
+                    modifier = Modifier.weight(1f),
+                    title = "MOVIES",
+                    value = "${stats.totalMovies}")
+                KinoBentoBox(
+                    modifier = Modifier.weight(1f),
+                    title = "TIME WATCHED",
+                    value = formatTotalMinutes(stats.totalMinutes)
+                )
             }
 
             Row(

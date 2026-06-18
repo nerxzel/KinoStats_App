@@ -3,6 +3,7 @@ package com.mooncowpines.kinostats.data.repositoryImpl
 import com.mooncowpines.kinostats.data.local.SessionManager
 import com.mooncowpines.kinostats.data.remote.AuthApi
 import com.mooncowpines.kinostats.data.remote.dto.*
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -29,25 +30,27 @@ class AuthTransportSecurityTest {
         override suspend fun requestPasswordReset(dto: ForgotPasswordDTO): retrofit2.Response<java.lang.Void> = TODO()
         override suspend fun resetPassword(dto: ResetPasswordDTO): retrofit2.Response<java.lang.Void> = TODO()
     }
+
     @Test
-    fun `register_encapsulatesPasswordInPOSTBody_toAllowSecureBcryptHashingOnServer`() = runBlocking {
+    fun `cp08_register_encapsulatesPassword_toAllowSecureBcryptHashingOnServer`() = runBlocking {
 
         val fakeApi = FakeAuthApiForSecurityAudit()
-        val fakeSession = mock(SessionManager::class.java)
+        val fakeSession = mockk<SessionManager>(relaxed = true)
         val repository = AuthRepositoryImpl(fakeApi, fakeSession)
 
         val rawPassword = "SuperSecretPassword123!"
         val testUser = "ivan_dev"
         val testEmail = "ivan_dev@test.cl"
 
-
         repository.register(userName = testUser, email = testEmail, pass = rawPassword)
 
-
-        assertNotNull("El payload de registro no llegó a la API", fakeApi.capturedRegisterPayload)
+        assertNotNull(
+            "Registration payload did not reach the API",
+            fakeApi.capturedRegisterPayload
+        )
 
         assertEquals(
-            "Violación de seguridad: La contraseña no se empaquetó correctamente en el DTO de transferencia",
+            "Security violation: Password was not packaged correctly in the transfer DTO",
             rawPassword,
             fakeApi.capturedRegisterPayload?.pass
         )

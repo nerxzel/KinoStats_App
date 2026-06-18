@@ -24,7 +24,7 @@ class LogScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun logScreen_deleteAction_showsDialogAndConfirmsDeletion() {
+    fun cp_20_logScreen_deleteAction_showsDialogAndConfirmsDeletion() {
         val testLog = Log(
             id = 101L,
             userId = 1L,

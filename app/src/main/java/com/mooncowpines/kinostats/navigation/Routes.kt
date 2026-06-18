@@ -35,13 +35,7 @@ sealed class Route(val path: String) {
         fun createRoute(query: String) = "search/$query"
     }
 
-    data object Wrapped : Route("wrapped/{year}?month={month}") {
-        fun createRoute(year: Int, month: Int? = null): String {
-            return if (month != null) {
-                "wrapped/$year?month=$month"
-            } else {
-                "wrapped/$year"
-            }
-        }
+    data object Wrapped : Route("wrapped/{year}") {
+        fun createRoute(year: Int) = "wrapped/$year"
     }
 }

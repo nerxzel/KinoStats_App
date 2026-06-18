@@ -24,6 +24,7 @@ fun KinoCalendar(
     }
 
     val calendarState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis(),
         selectableDates = selectableDates)
 
     DatePickerDialog(

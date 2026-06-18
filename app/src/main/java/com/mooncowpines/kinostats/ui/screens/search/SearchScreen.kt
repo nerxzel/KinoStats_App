@@ -25,6 +25,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.ui.platform.testTag
 import com.mooncowpines.kinostats.ui.components.KinoPosterCard
 import com.mooncowpines.kinostats.ui.theme.KinoSpacing
 import com.mooncowpines.kinostats.ui.theme.KinoWhite
@@ -150,7 +151,9 @@ fun SearchContent(
                             KinoPosterCard(
                                 movieCard = movie,
                                 onClick = { onMovieClick(movie.id) },
-                                modifier = Modifier.width(110.dp).aspectRatio(2f/3f)
+                                modifier = Modifier.width(110.dp)
+                                    .aspectRatio(2f/3f)
+                                    .testTag("movie_result_card")
                             )
                         }
                     }

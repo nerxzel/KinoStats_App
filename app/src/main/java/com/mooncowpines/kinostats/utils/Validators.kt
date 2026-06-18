@@ -97,8 +97,8 @@ fun formatTimestampToDateString(timestamp: Long, locale: Locale = Locale.getDefa
     return localDate.format(dateFormatter)
 }
 
-fun formatLocalDateToString(date: java.time.LocalDate, locale: java.util.Locale = java.util.Locale.getDefault()): String {
-    val dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
+fun formatLocalDateToString(date: LocalDate, locale: Locale = Locale.getDefault()): String {
+    val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy", locale)
     return date.format(dateFormatter)
 }
 

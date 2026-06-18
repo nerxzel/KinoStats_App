@@ -51,7 +51,7 @@ fun StatsScreen(
     modifier: Modifier = Modifier,
     viewModel: StatsScreenViewModel = hiltViewModel(),
     onMovieClick: (Long) -> Unit,
-    onNavigateToWrapped: (Int, Int?) -> Unit
+    onNavigateToWrapped: (Int) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -71,7 +71,7 @@ fun StatsContent(
     onMovieClick: (Long) -> Unit,
     onFilterChange: (Int, Int?) -> Unit,
     onRefresh: () -> Unit,
-    onNavigateToWrapped: (Int, Int?) -> Unit,
+    onNavigateToWrapped: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -167,7 +167,7 @@ fun StatsContent(
                     } else {
 
                         Button(
-                            onClick = { onNavigateToWrapped(state.selectedYear, state.selectedMonth) },
+                            onClick = { onNavigateToWrapped(state.selectedYear) },
                             colors = ButtonDefaults.buttonColors(containerColor = KinoYellow),
                             modifier = Modifier
                                 .fillMaxWidth()

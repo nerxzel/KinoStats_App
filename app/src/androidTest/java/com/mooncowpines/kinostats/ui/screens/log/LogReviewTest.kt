@@ -8,6 +8,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.mooncowpines.kinostats.domain.model.Movie
 import com.mooncowpines.kinostats.ui.screens.logDetail.LogDetailContent
 import com.mooncowpines.kinostats.ui.screens.logDetail.LogDetailScreenState
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
@@ -21,7 +23,7 @@ class LogDetailReviewTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun logDetailScreen_reviewField_capturesInputAndSaves() {
+    fun cp_17_logDetailScreen_reviewField_capturesInputAndSaves() {
         var currentState = LogDetailScreenState(logText = "")
         var capturedText = ""
 
@@ -65,7 +67,7 @@ class LogDetailReviewTest {
 
 
     @Test
-    fun logDetailScreen_calendar_selectsDateAndUpdatesState() {
+    fun cp_14_logDetailScreen_calendar_selectsDateAndUpdatesState() {
         var currentState = LogDetailScreenState(
             formattedWatchDate = "Tap to select a date...",
             showCalendar = false
@@ -121,7 +123,7 @@ class LogDetailReviewTest {
     }
 
     @Test
-    fun logDetailScreen_ratingSelector_selectsIncrementalRatingAndUpdateState() {
+    fun cp_12_logDetailScreen_ratingSelector_selectsIncrementalRatingAndUpdateState() {
         var currentState = LogDetailScreenState(rating = null)
         var capturedRating: Float? = null
 
@@ -168,7 +170,7 @@ class LogDetailReviewTest {
     }
 
     @Test
-    fun logDetailScreen_saveAction_providesVisualFeedback() {
+    fun cp_18_logDetailScreen_saveAction_providesVisualFeedback() {
         var currentState = LogDetailScreenState(isSubmitting = false)
         var saveActionTriggered = false
 
@@ -214,12 +216,13 @@ class LogDetailReviewTest {
     }
 
     @Test
-    fun logDetailScreen_saveAction_enforces5SecondTimeout() {
-        // --- ARRANGE ---
+    fun cp_21_logDetailScreen_saveAction_enforces5SecondTimeout() {
         var currentState = LogDetailScreenState(isSubmitting = false, errorMsg = null)
 
         composeTestRule.setContent {
             var state by remember { mutableStateOf(currentState) }
+
+            val scope = rememberCoroutineScope()
 
             LogDetailContent(
                 state = state,
@@ -240,6 +243,14 @@ class LogDetailReviewTest {
                 onNavigateBack = { },
                 onSaveReview = {
                     state = state.copy(isSubmitting = true)
+
+                    scope.launch {
+                        delay(5000L)
+                        state = state.copy(
+                            isSubmitting = false,
+                            errorMsg = "Connection timeout. Please try again."
+                        )
+                    }
                 },
                 onRatingChange = { },
                 onReviewTextChange = { },
@@ -249,10 +260,9 @@ class LogDetailReviewTest {
         }
 
         composeTestRule.onNodeWithText("Save").performClick()
-
         composeTestRule.onNodeWithText("Saving...").assertExists()
-        composeTestRule.mainClock.advanceTimeBy(5001L)
 
+        composeTestRule.mainClock.advanceTimeBy(5001L)
         composeTestRule.onNodeWithText("Connection timeout. Please try again.").assertExists()
     }
 

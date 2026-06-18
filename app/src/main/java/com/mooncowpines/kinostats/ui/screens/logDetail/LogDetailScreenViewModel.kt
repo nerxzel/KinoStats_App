@@ -34,8 +34,6 @@ class LogDetailScreenViewModel @Inject constructor(
     private val movieId: Long = checkNotNull(savedStateHandle["movieId"])
     private val logId: String? = savedStateHandle["logId"]
 
-    private val dateFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy", Locale.getDefault())
-
     init {
         loadData()
     }
@@ -56,7 +54,7 @@ class LogDetailScreenViewModel @Inject constructor(
                         rating = existingLog.rating,
                         logText = existingLog.logText,
                         watchDate = existingLog.watchDate,
-                        formattedWatchDate = existingLog.watchDate?.format(dateFormatter) ?: "Select date"
+                        formattedWatchDate = existingLog.watchDate?.let { date -> formatLocalDateToString(date) } ?: "Select date"
                     )}
                 } else {
                     _state.update { it.copy(
@@ -80,7 +78,7 @@ class LogDetailScreenViewModel @Inject constructor(
     fun onWatchDateSelected(timestamp: Long?) {
         if (timestamp != null) {
             val localDate = Instant.ofEpochMilli(timestamp).atZone(ZoneId.of("UTC")).toLocalDate()
-            val formattedDate = localDate.format(dateFormatter)
+            val formattedDate = formatTimestampToDateString(timestamp)
 
             _state.update {
                 it.copy(
@@ -98,6 +96,10 @@ class LogDetailScreenViewModel @Inject constructor(
 
     //Functions to track text field value
     fun onRatingChange(newRating: Float) {
+        if (newRating != 0f && !isRatingValid(newRating)) {
+            return
+        }
+
         val safeRating = if (newRating < 0.5f) null else newRating
 
         _state.update { it.copy(rating = safeRating, ratingError = null, errorMsg = null ) }

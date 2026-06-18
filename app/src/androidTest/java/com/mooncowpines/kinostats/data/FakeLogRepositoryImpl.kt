@@ -8,51 +8,61 @@ class FakeLogRepository : LogRepository {
 
     var shouldReturnError: Boolean = false
 
-    var mockSingleLog: Log? = null
-    var mockLogsByUser: List<Log>? = emptyList()
-    var mockLogsForMovies: List<Log> = emptyList()
+    val logsDB = mutableListOf<Log>()
 
     override suspend fun getLogById(logId: Long): Log? {
         if (shouldReturnError) return null
-        return mockSingleLog
+        return logsDB.find { it.id == logId }
     }
 
     override suspend fun getLogsByUser(userId: Long): List<Log>? {
         if (shouldReturnError) return null
-        return mockLogsByUser
+        return logsDB.filter { it.userId == userId }
     }
 
     override suspend fun getLogsForMovies(movieId: Long): List<Log> {
         if (shouldReturnError) return emptyList()
-        return mockLogsForMovies
+        return logsDB.filter { it.movieId == movieId }
     }
 
     override suspend fun saveLog(
-        newMovieId: Long,
-        newUserId: Long?,
-        newRating: Float?,
-        newWatchDate: LocalDate?,
-        newReviewText: String?
+        newMovieId: Long, newUserId: Long?, newRating: Float?,
+        newWatchDate: LocalDate?, newReviewText: String?
     ): Boolean {
-        if (newUserId == null) return false
+        if (newUserId == null || shouldReturnError) return false
 
-        return !shouldReturnError
+        val newLog = Log(
+            id = (logsDB.maxOfOrNull { it.id } ?: 0L) + 1L,
+            movieId = newMovieId, userId = newUserId,
+            rating = newRating, watchDate = newWatchDate, logText = newReviewText,
+            movieTitle = "Mock Movie", posterUrl = "", releaseYear = 2026
+        )
+        logsDB.add(newLog)
+        return true
     }
 
     override suspend fun updateLog(
-        logId: Long,
-        newMovieId: Long,
-        newUserId: Long?,
-        newRating: Float?,
-        newWatchDate: LocalDate?,
-        newReviewText: String?
+        logId: Long, newMovieId: Long, newUserId: Long?,
+        newRating: Float?, newWatchDate: LocalDate?, newReviewText: String?
     ): Boolean {
-        if (newUserId == null) return false
+        if (newUserId == null || shouldReturnError) return false
 
-        return !shouldReturnError
+        val index = logsDB.indexOfFirst { it.id == logId }
+        if (index != -1) {
+            val existingLog = logsDB[index]
+            logsDB[index] = existingLog.copy(
+                movieId = newMovieId, userId = newUserId,
+                rating = newRating, watchDate = newWatchDate, logText = newReviewText
+            )
+            return true
+        }
+        return false
     }
 
     override suspend fun deleteLog(logId: Long): Boolean {
-        return !shouldReturnError
+        if (shouldReturnError) return false
+        val initialSize = logsDB.size
+        logsDB.removeAll { it.id == logId }
+        return logsDB.size < initialSize
     }
 }

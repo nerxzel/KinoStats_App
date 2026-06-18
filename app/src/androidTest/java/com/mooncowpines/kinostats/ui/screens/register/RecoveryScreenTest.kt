@@ -26,7 +26,7 @@ class RecoveryScreenTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun recoveryFlow_withValidEmail_navigatesToResetScreen_andPassesEmail() {
+    fun cp_05_recoveryFlow_withValidEmail_navigatesToResetScreen_andPassesEmail() {
         var capturedEmail = ""
         var isRecoveryClicked = false
 
@@ -50,8 +50,8 @@ class RecoveryScreenTest {
         composeTestRule.onNodeWithText("example@gmail.com").performTextInput(testEmail)
         composeTestRule.onNodeWithText("Send").performClick()
 
-        assertEquals("El componente no actualizó el email.", testEmail, capturedEmail)
-        assertTrue("El botón de Send no disparó la acción de recuperación.", isRecoveryClicked)
+        assertEquals("Component did not update the email.", testEmail, capturedEmail)
+        assertTrue("Send button did not trigger the recovery action.", isRecoveryClicked)
 
     }
 }

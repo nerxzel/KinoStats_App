@@ -22,17 +22,20 @@ import com.mooncowpines.kinostats.ui.screens.logDetail.LogDetailScreen
 import com.mooncowpines.kinostats.ui.screens.stats.StatsScreen
 import com.mooncowpines.kinostats.ui.screens.movieDetail.MovieDetailScreen
 import com.mooncowpines.kinostats.ui.screens.search.SearchScreen
+import com.mooncowpines.kinostats.ui.screens.wrapped.WrappedScreen
 
 
 @Composable
-fun NavGraph(modifier: Modifier = Modifier, navController: NavHostController) {
+fun NavGraph(
+    modifier: Modifier = Modifier,
+    navController: NavHostController,
+    startDestination: String) {
 
     NavHost(
         navController = navController,
-        startDestination = Route.Login.path,
+        startDestination = startDestination,
         modifier = modifier
     ) {
-
         composable(Route.Login.path) {
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(Route.Register.path) },
@@ -124,6 +127,9 @@ fun NavGraph(modifier: Modifier = Modifier, navController: NavHostController) {
             StatsScreen(
                onMovieClick =  { movieId ->
                     navController.navigate(Route.MovieDetail.createRoute(movieId))
+                },
+                onNavigateToWrapped = { year ->
+                    navController.navigate(Route.Wrapped.createRoute(year))
                 }
             )
         }
@@ -189,6 +195,17 @@ fun NavGraph(modifier: Modifier = Modifier, navController: NavHostController) {
                 onMovieClick = { movieId ->
                     navController.navigate(Route.MovieDetail.createRoute(movieId))
                 }
+            )
+        }
+
+        composable(
+            route = Route.Wrapped.path,
+            arguments = listOf(
+                navArgument("year") { type = NavType.IntType },
+            )
+        ) {
+            WrappedScreen(
+                onClose = { navController.popBackStack() }
             )
         }
 

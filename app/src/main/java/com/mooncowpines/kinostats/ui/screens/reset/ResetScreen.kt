@@ -57,7 +57,7 @@ fun ResetScreen(
     }
 
     Box(Modifier.fillMaxSize().padding(30.dp)) {
-        Reset(
+        ResetContent(
             modifier = Modifier.align(Alignment.Center),
             state = state,
             onCodeChange = { viewModel.onCodeChange(it)},
@@ -71,7 +71,7 @@ fun ResetScreen(
 }
 
 @Composable
-fun Reset(
+fun ResetContent(
     modifier: Modifier,
     state: ResetScreenState,
     onPassChange: (String) -> Unit,
@@ -109,7 +109,7 @@ fun Reset(
                     thickness = 1.dp,
                     modifier = Modifier.padding(top = KinoSpacing.micro, bottom = KinoSpacing.small)
                 )
-                KinoTextField(
+                 KinoTextField(
                     textValue = state.code,
                     onTextChange = onCodeChange,
                     placeholderText = "000000",

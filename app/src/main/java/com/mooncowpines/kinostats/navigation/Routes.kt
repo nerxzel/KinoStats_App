@@ -34,4 +34,8 @@ sealed class Route(val path: String) {
     data object Search : Route("search/{query}") {
         fun createRoute(query: String) = "search/$query"
     }
+
+    data object Wrapped : Route("wrapped/{year}") {
+        fun createRoute(year: Int) = "wrapped/$year"
+    }
 }

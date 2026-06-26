@@ -3,6 +3,7 @@ package com.mooncowpines.kinostats.data.repositoryImpl
 import android.util.Log
 import com.mooncowpines.kinostats.data.mapper.toDomain
 import com.mooncowpines.kinostats.data.remote.StatsApi
+import com.mooncowpines.kinostats.data.remote.dto.WrapRequestDTO
 import com.mooncowpines.kinostats.data.remote.dto.StatsRequestDTO
 import com.mooncowpines.kinostats.domain.model.UserStats
 import com.mooncowpines.kinostats.domain.repository.StatsRepository
@@ -12,23 +13,32 @@ class StatsRepositoryImpl @Inject constructor(
     private val api: StatsApi
 ) : StatsRepository {
 
-    override suspend fun getUserStats(userId: Long?, year: Int?, month: Int?): UserStats {
-        if (userId == null || year == null) throw Exception("Missing required user or year data")
+    override suspend fun getUserStats(userId: Long?, year: Int?, month: Int?): UserStats? {
+        if (userId == null || year == null) return null
 
-        val request = StatsRequestDTO(
-            userId = userId,
-            month = month,
-            year = year
-        )
+        return try {
+            val request = StatsRequestDTO(userId = userId, month = month, year = year)
+            val response = api.getStats(request)
 
-        val response = api.getStats(request)
-
-        if (response.isSuccessful) {
-            val dto = response.body() ?: throw Exception("Empty response body")
-            return dto.toDomain()
-        } else {
-            Log.e("StatsRepo", "Error: ${response.code()}")
-            throw Exception("Failed to fetch stats")
-        }
+            if (response.isSuccessful) {
+                response.body()?.toDomain()
+            } else {
+                Log.e("StatsRepo", "Error: ${response.code()}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("StatsRepo", "Network error", e)
+            null
+            }
     }
+
+    override suspend fun getWrappedStats(userId: Long?, year: Int?): UserStats? {
+        if (userId == null || year == null) return null
+        return try {
+            val request = WrapRequestDTO(userId = userId, year = year)
+            val response = api.getWrapped(request)
+            if (response.isSuccessful) response.body()?.toDomain() else null
+        } catch (e: Exception) { null }
+    }
+
 }

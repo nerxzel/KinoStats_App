@@ -34,6 +34,17 @@ class AuthRepositoryImpl @Inject constructor(
 
     private var currentUser: User? = null
 
+    init {
+        val token = sessionManager.fetchAuthToken()
+        val savedUserId = sessionManager.fetchUserId()
+
+        if (token != null && savedUserId != null) {
+            _authState.value = AuthState.LOGGED_IN
+        } else {
+            _authState.value = AuthState.LOGGED_OUT
+        }
+    }
+
     override suspend fun login(username: String, pass: String): String? {
         try {
             val authHeader = Credentials.basic(username, pass)
@@ -46,10 +57,12 @@ class AuthRepositoryImpl @Inject constructor(
                         id = loginResponse.userId,
                         userName = loginResponse.username,
                         email = loginResponse.email,
-                        pass = pass
                     )
                     currentUser = user
+
                     sessionManager.saveAuthToken(authHeader)
+                    sessionManager.saveUserId(loginResponse.userId)
+
                     _authState.value = AuthState.LOGGED_IN
 
                     return null
@@ -73,6 +86,16 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getCurrentUser(): User? {
+
+        if (currentUser != null) {
+            return currentUser
+        }
+
+        val savedUserId = sessionManager.fetchUserId()
+
+        if (savedUserId != null) {
+            currentUser = getUserById(savedUserId)
+        }
         return currentUser
     }
 
@@ -126,7 +149,6 @@ class AuthRepositoryImpl @Inject constructor(
                 currentUser = userToUpdate.copy(
                     userName = userName,
                     email = email,
-                    pass = passToSave
                 )
                 null
             } else {

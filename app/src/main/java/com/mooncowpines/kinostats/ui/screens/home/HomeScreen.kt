@@ -19,8 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -212,7 +210,8 @@ fun WatchlistSection(
                     items(movieCards) { movieCard ->
                         KinoPosterCard(
                             movieCard = movieCard,
-                            onClick = { id -> onMovieClick(id) }
+                            onClick = { id -> onMovieClick(id) },
+                            Modifier.width(110.dp).aspectRatio(2f/3f)
                         )
                     }
                     item {
@@ -326,7 +325,8 @@ fun JustWatchedSection(
                     items(movieCards) { movieCards ->
                         KinoPosterCard(
                             movieCard = movieCards,
-                            onClick = { id -> onMovieClick(id) }
+                            onClick = { id -> onMovieClick(id) },
+                            Modifier.width(110.dp).aspectRatio(2f/3f)
                         )
                     }
 

@@ -12,6 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 import androidx.compose.runtime.collectAsState
@@ -34,6 +39,7 @@ import com.mooncowpines.kinostats.ui.components.KinoGenreBarChart
 import com.mooncowpines.kinostats.ui.components.KinoRatingBarChart
 import com.mooncowpines.kinostats.ui.components.KinoSummaryCards
 import com.mooncowpines.kinostats.ui.components.KinoTopList
+import com.mooncowpines.kinostats.ui.theme.KinoBlack
 import com.mooncowpines.kinostats.ui.theme.KinoSpacing
 import com.mooncowpines.kinostats.ui.theme.KinoYellow
 import com.mooncowpines.kinostats.ui.theme.KinoWhite
@@ -44,7 +50,8 @@ import kotlinx.coroutines.launch
 fun StatsScreen(
     modifier: Modifier = Modifier,
     viewModel: StatsScreenViewModel = hiltViewModel(),
-    onMovieClick: (Long) -> Unit
+    onMovieClick: (Long) -> Unit,
+    onNavigateToWrapped: (Int) -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -53,7 +60,8 @@ fun StatsScreen(
         onMovieClick = onMovieClick,
         modifier = modifier,
         onRefresh = { viewModel.loadStatsOnly() },
-        onFilterChange = { year, month -> viewModel.updateFilter(year, month) }
+        onFilterChange = { year, month -> viewModel.updateFilter(year, month) },
+        onNavigateToWrapped = onNavigateToWrapped
         )
 }
 
@@ -63,6 +71,7 @@ fun StatsContent(
     onMovieClick: (Long) -> Unit,
     onFilterChange: (Int, Int?) -> Unit,
     onRefresh: () -> Unit,
+    onNavigateToWrapped: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -129,9 +138,10 @@ fun StatsContent(
                 }
             } else {
 
-                state.stats?.let { statsData ->
+                val statsData = state.stats
 
-                    val hasData = statsData.genres.isNotEmpty()
+                if (statsData != null) {
+                    val hasData = statsData.totalMovies > 0
 
                     if (!hasData) {
                         Box(
@@ -156,6 +166,24 @@ fun StatsContent(
                         }
                     } else {
 
+                        Button(
+                            onClick = { onNavigateToWrapped(state.selectedYear) },
+                            colors = ButtonDefaults.buttonColors(containerColor = KinoYellow),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp)
+                        ) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            val periodName = if (state.selectedMonth != null) "Month" else "Year"
+                            Text(
+                                text = "See Your Kino Wrapped for this $periodName",
+                                color = KinoBlack,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(KinoSpacing.extraLarge))
 
                         KinoSummaryCards(
@@ -166,43 +194,51 @@ fun StatsContent(
 
                         Spacer(modifier = Modifier.height(KinoSpacing.extraLarge))
 
-                        KinoGenreBarChart(
-                            genres = statsData.genres,
-                            maxMovieCount = state.genreMaxMovieCount
-                        )
+                        if (statsData.genres.isNotEmpty()) {
+                            KinoGenreBarChart(
+                                genres = statsData.genres,
+                                maxMovieCount = state.genreMaxMovieCount
+                            )}
 
                         Spacer(modifier = Modifier.height(KinoSpacing.extraLarge))
 
-                        KinoCountryPieChart(countries = statsData.countries)
+                        if (statsData.countries.isNotEmpty()) {
+                        KinoCountryPieChart(countries = statsData.countries)}
 
                         Spacer(modifier = Modifier.height(KinoSpacing.extraLarge))
 
-                        KinoRatingBarChart(ratings = statsData.ratings)
+                        if (statsData.ratings.isNotEmpty()) {
+                        KinoRatingBarChart(ratings = statsData.ratings)}
 
                         Spacer(modifier = Modifier.height(KinoSpacing.extraLarge))
 
-                        KinoDecadeLineChart(decades = statsData.decades)
+                        if (statsData.decades.isNotEmpty()) {
+                        KinoDecadeLineChart(decades = statsData.decades)}
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
+                            if (statsData.topActors.isNotEmpty()){
                             KinoTopList(
                                 title = "Top Actors",
                                 items = statsData.topActors.sortedByDescending { it.value }.take(5),
                                 modifier = Modifier.weight(1f)
-                            )
+                            )}
+
                             Spacer(modifier = Modifier.width(16.dp))
+
+                            if (statsData.topDirectors.isNotEmpty()) {
                             KinoTopList(
                                 title = "Top Directors",
                                 items = statsData.topDirectors.sortedByDescending { it.value }
                                     .take(5),
                                 modifier = Modifier.weight(1f)
                             )
+                            }
                         }
-
-                    } ?: run {
-                        if (state.errorMsg != null) {
+                    }
+                }else if (state.errorMsg != null) {
                             Box(
                                 modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
                                 contentAlignment = Alignment.Center
@@ -216,5 +252,3 @@ fun StatsContent(
                 }
             }
         }
-    }
-}
